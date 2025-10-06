@@ -1,11 +1,13 @@
 <template>
+  <ConfirmToast ref="confirmRef" />
   <div class="form-wrapper">
     <form class="create-booking-form" @submit.prevent="saveBooking">
+      <p style="color: #FF8B00 ">Create bookings that were not automatically tracked by Trivago or were deleted by mistake (e.g., phone or in-person reservations).</p>
 
       <!-- Row 1 -->
       <div class="form-row">
         <div class="form-field">
-          <label>Select Hotel</label>
+          <label>Hotel</label>
           <Dropdown
             v-model="selectedHotel"
             :options="hotels"
@@ -22,27 +24,7 @@
         </div>
       </div>
 
-      <!-- Row 2 -->
-      <div class="form-row">
-        <div class="form-field">
-          <label>Booking Date</label>
-          <Calendar
-            v-model="bookingDate"
-            class="full-width"
-            dateFormat="yy-mm-dd"
-            showIcon
-            readonlyInput
-          />
-        </div>
-
-        
-
-        <div class="form-field">
-          <label>Amount Paid</label>
-          <InputText v-model="amount" type="number" class="full-width" />
-        </div>
-      </div>
-
+     
       <!-- Row 3 -->
       <div class="form-row">
         <div class="form-field">
@@ -64,6 +46,28 @@
             showIcon
           />
           <small v-if="departureError" class="error-msg">{{ departureError }}</small>
+        </div>
+      </div>
+
+
+       <!-- Row 2 -->
+      <div class="form-row">
+        <div class="form-field">
+          <label>Booking Date</label>
+          <Calendar
+            v-model="bookingDate"
+            class="full-width"
+            dateFormat="yy-mm-dd"
+            showIcon
+            readonlyInput
+          />
+        </div>
+
+        
+
+        <div class="form-field">
+          <label>Amount Paid</label>
+          <InputText v-model="amount" type="number" class="full-width" />
         </div>
       </div>
 
@@ -91,23 +95,33 @@
             optionValue="value"
           placeholder="Select source"
           class="full-width"
-        />
+        /> 
+          <small v-if="validationError" class="error-msg">{{ validationError }}</small>
       </div>
 
       <!-- Buttons -->
       <div class="form-buttons">
-        <Button label="Cancel" severity="secondary" @click="cancel" ></Button>
-        <Button label="Save" type="submit" ></Button>
+        <Button class="form-cancel-btn" label="Cancel" @click="cancel" ></Button>
+        <Button class="form-save-btn"  label="Save" type="submit" ></Button>      
       </div>
     </form>
 
-    <!-- ✅ Success Dialog -->
-    <Dialog v-model:visible="successDialog" header="Success" modal closable>
-      <p>🎉 Booking created successfully!</p>
-      <div class="flex justify-end mt-3">
-        <Button label="OK" @click="successDialog = false" ></Button>
+    <Dialog 
+      v-model:visible="successDialog" 
+      header="Success" 
+      modal 
+      closable 
+      class="success-dialog"
+    >
+      <div class="success-content">
+        <i class="pi pi-check-circle success-icon"></i>
+        <p>Booking created successfully!</p>
+      </div>
+      <div class="dialog-footer">
+        <Button label="OK" class="p-button-success" @click="successDialog = false" />
       </div>
     </Dialog>
+
   </div>
 </template>
 
@@ -118,6 +132,7 @@ import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputText from "primevue/inputtext";
 import Calendar from "primevue/calendar";
+import ConfirmToast from "./ConfirmToast.vue";
 import Dialog from "primevue/dialog";
 
 // --- State Variables ---
@@ -131,6 +146,8 @@ const arrivalDate = ref(null);
 const departureDate = ref(null);
 const selectedStatus = ref(null);
 const departureError = ref("");
+const confirmRef = ref(null);
+const validationError = ref("");
 const successDialog = ref(false);
 
 function formatDateLocal(date) {
@@ -149,9 +166,18 @@ const statusOptions = ref([
 
 
 const sources = ref([
-  { label: 'Website', value: 'website' },
-      { label: 'Phone', value: 'phone' },
-      { label: 'Agent', value: 'agent' },
+  { label: 'Hotel-website', value: 'Hotel-Website' },
+  { label: 'On-call', value: 'On-call' },
+  { label: 'Reception', value: 'Reception' },
+  { label: 'Booking.com', value: 'Booking.com' },
+  { label: 'Expedia', value: 'Expedia' },
+  { label: 'Hotels.com', value: 'Hotels.com' },
+  { label: 'Vrbo', value: 'Vrbo' },
+  { label: 'Trip.com', value: 'Trip.com' },
+  { label: 'Priceline', value: 'Priceline' },
+  { label: 'Agoda', value: 'Agoda' },
+  { label: 'Accor', value: 'Accor' },
+  { label: 'Other booking sites', value: 'Other booking sites' },
 ]);
 
 // --- Fetch Hotels ---
@@ -162,6 +188,26 @@ const fetchHotels = async () => {
   } catch (err) {
     console.error("Error fetching hotels:", err);
   }
+};
+
+
+const validateForm = () => {
+  if (
+    !selectedHotel.value ||
+    !selectedSource.value ||
+    !amount.value ||
+    !arrivalDate.value ||
+    !departureDate.value ||
+    !selectedStatus.value
+  ) {
+    validationError.value = "All fields are mandatory!";
+    return false;
+  }
+
+ 
+
+  validationError.value = ""; // clear error if all is good
+  return true;
 };
 
 // --- Fetch latest booking ID ---
@@ -179,6 +225,8 @@ const fetchNextBookingId = async () => {
   }
 };
 
+
+
 // --- Lifecycle ---
 onMounted(async () => {
   await Promise.all([fetchHotels(), fetchNextBookingId()]);
@@ -192,19 +240,19 @@ watch([arrivalDate, departureDate], ([a, d]) => {
   }
 });
 
-// --- Form Actions ---
-const cancel = () => {
-  selectedHotel.value = null;
-  amount.value = null;
-  selectedSource = null;
-  arrivalDate.value = null;
-  departureDate.value = null;
-  selectedStatus.value = null;
-  bookingDate.value = new Date();
-  departureError.value = "";
+import { defineEmits } from "vue";
+
+const emit = defineEmits(['cancel']);
+
+const cancel= () => {
+  emit('cancel'); 
 };
 
 const saveBooking = async () => {
+ if (!validateForm()) {
+    confirmRef.value.showWarning(validationError.value); // show warning if fields missing
+    return;
+  }
 
   const newBooking = {
     booking_id: bookingId.value,
@@ -222,8 +270,7 @@ const saveBooking = async () => {
   try {
     await axios.post("http://localhost:5000/api/bookings/create", newBooking);
     successDialog.value = true;
-    await fetchNextBookingId(); // Refresh ID after save
-    cancel();
+    await fetchNextBookingId(); 
   } catch (err) {
     console.error("Error creating booking:", err);
   }
@@ -246,7 +293,9 @@ const saveBooking = async () => {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 1.5rem 2rem;
+  padding: 0rem 2rem 1rem 2rem;
+  overflow: hidden;
+  position: fixed;
 }
 
 .form-row {
@@ -281,4 +330,66 @@ const saveBooking = async () => {
   gap: 0.5rem;
   margin-top: 1rem;
 }
+
+.form-save-btn{
+  background-color: #0088BC;
+  color: #fff;
+}
+
+.form-cancel-btn{
+  background-color: #ffffff;
+  color: #0088BC;
+  border: 1px solid #0088BC;
+}
+
+.success-dialog {
+  border-radius: 16px !important;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+  max-width: 350px;
+}
+
+.p-dialog-header {
+  background-color: #E6F7EE;
+  color: #256029;
+  font-weight: 600;
+  font-size: 1.2rem;
+  border-bottom: none;
+}
+
+.p-dialog-content {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 60px;
+}
+
+.success-icon {
+  font-size: 2.5rem;
+  color: #22C55E;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.p-button-success {
+  background-color: #22C55E;
+  border: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 </style>

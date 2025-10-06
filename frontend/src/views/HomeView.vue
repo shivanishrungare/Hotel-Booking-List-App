@@ -8,43 +8,10 @@
       </header>
 
       <div class="table-view-container">
-        <div class="table-title">Hotel Booking Overview</div>
-        <div class="table-actions">
-          <div class="create-search-options">
-          <Button class="custom-btn"  @click="openDialog(FormContainer)" ><i class="pi pi-plus-circle"></i></Button>
-           <Dialog
-            v-model:visible="isVisible"
-            header="Create new booking"
-            modal
-          >
-            <component
-              :is="currentComponent"
-              
-            />
-          </Dialog>
-          <InputText class="search-input" placeholder="Search for Hotel or booking no."></InputText>
-          </div>
-         
-          
-          <div class="filter-options">
-          <div>
-          <MultiSelect v-model="selectedStatus" :options="statuses" optionLabel="status" filter placeholder="Check by status"
-            :maxSelectedLabels="3" class="custom-multiselect" @click:dropdown="resetStatusSelection" />
-            <Button label="Reset" class="p-button-text" @click="resetStatusSelection"><i class="pi pi-times" @click="statusFilter = null"></i></Button>
-            </div>
-     
-         <div class="filter-options">
-          <Dropdown v-model="selectedTimeFrame" :options="timeframe" optionLabel="timeframe" placeholder="Check by timeframe"
-            :maxSelectedLabels="1" class="custom-multiselect" />
-            <Button label="Reset" class="p-button-text" @click="resetTimeSelection"><i class="pi pi-times" @click="statusFilter = null"></i></Button>
-         </div>
-         </div>
-
-            
-        </div>
+        <div class="table-title">Hotel Booking Overview</div>     
 
         <div class="table">
-          <BookingListTable/>
+          <BookingListTable :bookings="filteredBookings" />
          </div>
         
       </div>
@@ -53,49 +20,8 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-import { ref, shallowRef } from "vue";
-import FormContainer from '../components/dialogs/FormContainer.vue';
 import BookingListTable from '@/components/table/BookingListTable.vue';
 
-const selectedStatus = ref(null);
-const selectedTimeFrame = ref(null);
-const isVisible = ref(false);
-const currentComponent = shallowRef(null)
-
-const statuses = ref([
-    { status: 'Cancelled'},
-    { status: 'Confirmed'},
-    { status: 'Completed' },
-]);
-
-const timeframe = ref([
-    { timeframe: 'All'},
-    { timeframe: 'Last Month'},
-    { timeframe: 'Last Year' },
-]);
-
-function resetTimeSelection() {
-  selectedTimeFrame.value = null
-}
-
-function resetStatusSelection() {
-  selectedStatus.value = null
-}
-
-const router = useRouter()
-const openDialog = (component) => {
-  currentComponent.value = component
-  isVisible.value = true
-}
-
-// const handleSubmitted = (data) => {
-//   console.log('Form data received:', data)
-//   isVisible.value = false
-// }
-function goToForm() {
-  router.push('/form') // navigate to the form page
-}
 </script>
 <style>
 
@@ -136,7 +62,7 @@ h1{
 
 .table-actions{
   margin-top: 20px;
-  background-color: rgb(235, 235, 235);
+  background-color: #E5E7EB;
   width: 100%;
   height: 60px;
   border-radius: 5px;
@@ -149,6 +75,8 @@ h1{
   background-color: #0088BC !important;
   margin: 10px;
   padding: 8px 10px;
+  color: #ffffff;
+
 }
 
 .search-input{
@@ -157,7 +85,7 @@ h1{
 }
 
 .custom-multiselect {
-  width: 200px; /* adjust as needed */
+  width: 200px;
 }
 
 .p-multiselect-header{
@@ -185,9 +113,24 @@ h1{
   align-items: center;
 }
 
-.table {
-  margin-top: 30px;
+.custom-dialog{
+  width: 40rem;
+  height: 60rem;
+  padding: 0px;
 }
 
+.p-dialog-content{
+  padding: 0px;
+}
+
+.p-dialog-header{
+  display: flex;
+  justify-content: space-between;
+  padding: 30px 30px 0px 30px;
+}
+
+.p-dialog-title{
+  font-weight: 600;
+}
 
 </style>

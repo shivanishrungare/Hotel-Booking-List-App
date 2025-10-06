@@ -12,6 +12,10 @@ import Calendar from 'primevue/calendar'
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Menu from 'primevue/menu'
+import ConfirmationService from "primevue/confirmationservice";
+import ToastService from "primevue/toastservice";
+import IconField from 'primevue/iconfield'
+
 
 // PrimeVue CSS
 import 'primevue/resources/themes/saga-blue/theme.css'
@@ -32,8 +36,10 @@ app.component('Dropdown', Dropdown)
 app.component('Calendar', Calendar)
 app.component('DataTable', DataTable);
 app.component('Column', Column);
-app.component('Menu', Column);
-
+app.component('IconField', IconField);
+app.component('Menu', Menu);
+app.use(ConfirmationService);
+app.use(ToastService);    
 
 app.use(createPinia())
 app.use(router)

@@ -1,15 +1,25 @@
-// controllers/bookingsController.js
-import db from "../db.js";
+import dayjs from "dayjs";
+import db from "../db.js"
 
 export const getBookings = async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT b.*, h.hotel_name 
-      FROM bookings b 
+      SELECT b.*, h.hotel_name
+      FROM bookings b
       JOIN hotels h ON b.hotel_id = h.hotel_id
     `);
-    res.json(rows);
+
+    const formattedRows = rows.map((r) => ({
+      ...r,
+      booking_date: r.booking_date ? dayjs(r.booking_date).format("YYYY-MM-DD") : null,
+      arrival_date: r.arrival_date ? dayjs(r.arrival_date).format("YYYY-MM-DD") : null,
+      departure_date: r.departure_date ? dayjs(r.departure_date).format("YYYY-MM-DD") : null,
+      cancelled_date: r.cancelled_date ? dayjs(r.cancelled_date).format("YYYY-MM-DD") : null,
+    }));
+
+    res.json(formattedRows);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
