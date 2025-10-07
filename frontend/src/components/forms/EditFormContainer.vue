@@ -1,21 +1,16 @@
 <template>
-  <ConfirmToast ref="confirmRef" />
   <div class="form-wrapper">
-    <form class="create-booking-form" @submit.prevent="saveBooking">
-      <p style="color: #FF8B00 ">Create bookings that were not automatically tracked by Trivago or were deleted by mistake (e.g., phone or in-person reservations).</p>
+    <ConfirmToast ref="confirmRef" />
+    <form class="create-booking-form" @submit.prevent="updateBooking">
+      <p style="color: #FF8B00">Edit booking details below. Make sure to verify the updated information before saving.
+      </p>
 
-      <!-- Row 1 -->
+
       <div class="form-row">
         <div class="form-field">
           <label>Hotel</label>
-          <Dropdown
-            v-model="selectedHotel"
-            :options="hotels"
-            optionLabel="hotel_name"
-            optionValue="hotel_id"
-            placeholder="Select a hotel"
-            class="full-width"
-          />
+          <Dropdown v-model="selectedHotel" :options="hotels" optionLabel="hotel_name" optionValue="hotel_id"
+            placeholder="Select a hotel" class="full-width" />
         </div>
 
         <div class="form-field">
@@ -24,46 +19,26 @@
         </div>
       </div>
 
-     
-      <!-- Row 3 -->
+
       <div class="form-row">
         <div class="form-field">
           <label>Arrival Date</label>
-          <Calendar
-            v-model="arrivalDate"
-            class="full-width"
-            dateFormat="yy-mm-dd"
-            showIcon
-          />
+          <Calendar v-model="arrivalDate" class="full-width" dateFormat="yy-mm-dd" showIcon />
         </div>
 
         <div class="form-field">
           <label>Departure Date</label>
-          <Calendar
-            v-model="departureDate"
-            class="full-width"
-            dateFormat="yy-mm-dd"
-            showIcon
-          />
+          <Calendar v-model="departureDate" class="full-width" dateFormat="yy-mm-dd" showIcon />
           <small v-if="departureError" class="error-msg">{{ departureError }}</small>
         </div>
       </div>
 
 
-       <!-- Row 2 -->
       <div class="form-row">
         <div class="form-field">
           <label>Booking Date</label>
-          <Calendar
-            v-model="bookingDate"
-            class="full-width"
-            dateFormat="yy-mm-dd"
-            showIcon
-            readonlyInput
-          />
+          <Calendar v-model="bookingDate" class="full-width" dateFormat="yy-mm-dd" showIcon readonlyInput />
         </div>
-
-        
 
         <div class="form-field">
           <label>Amount Paid</label>
@@ -71,57 +46,37 @@
         </div>
       </div>
 
-      <!-- Row 4 -->
+
       <div class="form-row">
         <div class="form-field">
           <label>Status</label>
-          <Dropdown
-            v-model="selectedStatus"
-            :options="statusOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select status"
-            class="full-width"
-          />
+          <Dropdown v-model="selectedStatus" :options="statusOptions" optionLabel="label" optionValue="value"
+            placeholder="Select status" class="full-width" />
         </div>
       </div>
 
       <div class="form-field">
         <label>Source</label>
-        <Dropdown
-          v-model="selectedSource"
-          :options="sources"
-            optionLabel="label"
-            optionValue="value"
-          placeholder="Select source"
-          class="full-width"
-        /> 
-          <small v-if="validationError" class="error-msg">{{ validationError }}</small>
+        <Dropdown v-model="selectedSource" :options="sources" optionLabel="label" optionValue="value"
+          placeholder="Select source" class="full-width" />
+        <small v-if="validationError" class="error-msg">{{ validationError }}</small>
       </div>
 
-      <!-- Buttons -->
       <div class="form-buttons">
-        <Button class="form-cancel-btn" label="Cancel" @click="cancel" ></Button>
-        <Button class="form-save-btn"  label="Save" type="submit" ></Button>      
+        <Button class="form-cancel-btn" label="Cancel" @click="cancel"></Button>
+        <Button class="form-save-btn" label="Update" type="submit"></Button>
       </div>
     </form>
 
-    <Dialog 
-      v-model:visible="successDialog" 
-      header="Success" 
-      modal 
-      closable 
-      class="success-dialog"
-    >
+    <Dialog v-model:visible="successDialog" header="Success" modal closable class="success-dialog">
       <div class="success-content">
         <i class="pi pi-check-circle success-icon"></i>
-        <p>Booking created successfully!</p>
+        <p>Booking updated successfully!</p>
       </div>
       <div class="dialog-footer">
-        <Button label="OK" class="p-button-success" @click="successDialog = false" />
+        <Button label="OK" class="p-button-success" @click="handleSuccessOk" ></Button>
       </div>
     </Dialog>
-
   </div>
 </template>
 
@@ -132,15 +87,19 @@ import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputText from "primevue/inputtext";
 import Calendar from "primevue/calendar";
-import ConfirmToast from "./ConfirmToast.vue";
+import ConfirmToast from "../dialogs/ConfirmToast.vue";
 import Dialog from "primevue/dialog";
 
-// --- State Variables ---
+const props = defineProps({
+  booking: { type: Object, required: true }
+});
+const emit = defineEmits(["cancel", "submitted"]);
+
 const hotels = ref([]);
 const selectedHotel = ref(null);
 const selectedSource = ref(null);
 const bookingId = ref("");
-const bookingDate = ref(new Date());
+const bookingDate = ref(null);
 const amount = ref(null);
 const arrivalDate = ref(null);
 const departureDate = ref(null);
@@ -150,37 +109,35 @@ const confirmRef = ref(null);
 const validationError = ref("");
 const successDialog = ref(false);
 
-function formatDateLocal(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-// --- Dropdown options ---
 const statusOptions = ref([
   { label: "Confirmed", value: "confirmed" },
   { label: "Cancelled", value: "cancelled" },
   { label: "Completed", value: "completed" },
 ]);
 
-
 const sources = ref([
-  { label: 'Hotel-website', value: 'Hotel-Website' },
-  { label: 'On-call', value: 'On-call' },
-  { label: 'Reception', value: 'Reception' },
-  { label: 'Booking.com', value: 'Booking.com' },
-  { label: 'Expedia', value: 'Expedia' },
-  { label: 'Hotels.com', value: 'Hotels.com' },
-  { label: 'Vrbo', value: 'Vrbo' },
-  { label: 'Trip.com', value: 'Trip.com' },
-  { label: 'Priceline', value: 'Priceline' },
-  { label: 'Agoda', value: 'Agoda' },
-  { label: 'Accor', value: 'Accor' },
-  { label: 'Other booking sites', value: 'Other booking sites' },
+  { label: "Hotel-website", value: "Hotel-Website" },
+  { label: "On-call", value: "On-call" },
+  { label: "Reception", value: "Reception" },
+  { label: "Booking.com", value: "Booking.com" },
+  { label: "Expedia", value: "Expedia" },
+  { label: "Hotels.com", value: "Hotels.com" },
+  { label: "Vrbo", value: "Vrbo" },
+  { label: "Trip.com", value: "Trip.com" },
+  { label: "Priceline", value: "Priceline" },
+  { label: "Agoda", value: "Agoda" },
+  { label: "Accor", value: "Accor" },
+  { label: "Other booking sites", value: "Other booking sites" },
 ]);
 
-// --- Fetch Hotels ---
+function formatDateLocal(date) {
+  const d = new Date(date);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 const fetchHotels = async () => {
   try {
     const res = await axios.get("http://localhost:5000/api/hotels");
@@ -189,6 +146,45 @@ const fetchHotels = async () => {
     console.error("Error fetching hotels:", err);
   }
 };
+
+const cancel = () => {
+  emit('cancel');
+};
+
+const handleSuccessOk = () => {
+  successDialog.value = false;
+  cancel();
+  window.location.reload();
+};
+
+watch(
+  () => props.booking,
+  (b) => {
+    if (b) {
+      selectedHotel.value = b.hotel_id;
+      selectedSource.value = b.source;
+      bookingId.value = b.booking_id;
+      bookingDate.value = b.bookingDate ? new Date(b.bookingDate) : new Date();
+      amount.value = b.value;
+      arrivalDate.value = b.arrivalDate ? new Date(b.arrivalDate) : null;
+      departureDate.value = b.departureDate ? new Date(b.departureDate) : null;
+      selectedStatus.value = b.status;
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(async () => {
+  await fetchHotels();
+});
+
+
+watch([arrivalDate, departureDate], ([a, d]) => {
+  departureError.value = "";
+  if (a && d && d <= a) {
+    departureError.value = "Departure must be after arrival.";
+  }
+});
 
 
 const validateForm = () => {
@@ -203,59 +199,19 @@ const validateForm = () => {
     validationError.value = "All fields are mandatory!";
     return false;
   }
-
- 
-
-  validationError.value = ""; // clear error if all is good
+  validationError.value = "";
   return true;
 };
 
-// --- Fetch latest booking ID ---
-const fetchNextBookingId = async () => {
-  try {
-    const res = await axios.get("http://localhost:5000/api/bookings");
-    if (res.data.length > 0) {
-      const latestId = Math.max(...res.data.map((b) => b.booking_id || 0));
-      bookingId.value = latestId + 1;
-    } else {
-      bookingId.value = 1;
-    }
-  } catch (err) {
-    console.error("Error fetching bookings:", err);
-  }
-};
 
 
-
-// --- Lifecycle ---
-onMounted(async () => {
-  await Promise.all([fetchHotels(), fetchNextBookingId()]);
-});
-
-// --- Validation ---
-watch([arrivalDate, departureDate], ([a, d]) => {
-  departureError.value = "";
-  if (a && d && d <= a) {
-    departureError.value = "Departure must be after arrival.";
-  }
-});
-
-import { defineEmits } from "vue";
-
-const emit = defineEmits(['cancel']);
-
-const cancel= () => {
-  emit('cancel'); 
-};
-
-const saveBooking = async () => {
- if (!validateForm()) {
-    confirmRef.value.showWarning(validationError.value); // show warning if fields missing
+const updateBooking = async () => {
+  if (!validateForm()) {
+    confirmRef.value.showWarning(validationError.value);
     return;
   }
 
-  const newBooking = {
-    booking_id: bookingId.value,
+  const updatedBooking = {
     hotel_id: selectedHotel.value,
     booking_date: formatDateLocal(bookingDate.value),
     source: selectedSource.value,
@@ -268,11 +224,11 @@ const saveBooking = async () => {
   };
 
   try {
-    await axios.post("http://localhost:5000/api/bookings/create", newBooking);
+    await axios.put(`http://localhost:5000/api/bookings/${bookingId.value}`, updatedBooking);
     successDialog.value = true;
-    await fetchNextBookingId(); 
+    emit("submitted");
   } catch (err) {
-    console.error("Error creating booking:", err);
+    console.error("Error updating booking:", err);
   }
 };
 </script>
@@ -331,12 +287,12 @@ const saveBooking = async () => {
   margin-top: 1rem;
 }
 
-.form-save-btn{
+.form-save-btn {
   background-color: #0088BC;
   color: #fff;
 }
 
-.form-cancel-btn{
+.form-cancel-btn {
   background-color: #ffffff;
   color: #0088BC;
   border: 1px solid #0088BC;
@@ -361,6 +317,7 @@ const saveBooking = async () => {
   text-align: center;
   padding: 1.5rem 1rem;
 }
+
 
 .success-content {
   display: flex;
@@ -388,8 +345,14 @@ const saveBooking = async () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 </style>

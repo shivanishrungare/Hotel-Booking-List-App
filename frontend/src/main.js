@@ -15,9 +15,9 @@ import Menu from 'primevue/menu'
 import ConfirmationService from "primevue/confirmationservice";
 import ToastService from "primevue/toastservice";
 import IconField from 'primevue/iconfield'
+import Card from 'primevue/card'
 
 
-// PrimeVue CSS
 import 'primevue/resources/themes/saga-blue/theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
@@ -38,6 +38,7 @@ app.component('DataTable', DataTable);
 app.component('Column', Column);
 app.component('IconField', IconField);
 app.component('Menu', Menu);
+app.component('Card', Card);
 app.use(ConfirmationService);
 app.use(ToastService);    
 
