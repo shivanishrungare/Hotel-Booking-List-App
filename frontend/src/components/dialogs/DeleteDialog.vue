@@ -27,6 +27,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible", "deleted"]);
+const cancel = () => {
+  emit('cancel');
+};
 
 const bookingId = ref("");
 
@@ -53,6 +56,8 @@ const confirmDelete = async () => {
     );
     console.log("✅ Booking deleted:", response.data);
     emit("deleted");
+    cancel();
+    window.location.reload();
   } catch (err) {
     console.error("Error deleting booking:", err);
     alert("Failed to delete booking. Please try again.");

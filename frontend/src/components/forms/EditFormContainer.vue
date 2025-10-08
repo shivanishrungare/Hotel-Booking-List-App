@@ -120,13 +120,16 @@ const sources = ref([
   { label: "On-call", value: "On-call" },
   { label: "Reception", value: "Reception" },
   { label: "Booking.com", value: "Booking.com" },
+  { label: "HolidayCheck", value: "HolidayCheck" },
   { label: "Expedia", value: "Expedia" },
+  { label: "Check24", value: "Check24" },
   { label: "Hotels.com", value: "Hotels.com" },
   { label: "Vrbo", value: "Vrbo" },
   { label: "Trip.com", value: "Trip.com" },
   { label: "Priceline", value: "Priceline" },
   { label: "Agoda", value: "Agoda" },
   { label: "Accor", value: "Accor" },
+   { label: "Other Trivago Partner", value: "Other Trivago Partner" },
   { label: "Other booking sites", value: "Other booking sites" },
 ]);
 

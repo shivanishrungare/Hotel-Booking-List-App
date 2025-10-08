@@ -44,6 +44,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible", "cancelled"]);
+const cancel = () => {
+  emit('cancel');
+};
 
 const cancelledDate = ref(new Date());
 const refundValue = ref(0);
@@ -69,6 +72,7 @@ const formatDateLocal = (date) => {
   if (!date) return null;
   return date instanceof Date ? date.toISOString().split("T")[0] : date;
 };
+
 
 const confirmCancel = async () => {
   if (!bookingId.value) {
@@ -96,6 +100,8 @@ const confirmCancel = async () => {
     console.log("✅ Booking cancelled:", response.data);
     emit("cancelled");
     emit("update:visible", false);
+    cancel();
+    window.location.reload();
   } catch (err) {
     console.error("Error cancelling booking:", err);
     alert("Failed to cancel booking. Please try again.");
