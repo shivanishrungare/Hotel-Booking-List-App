@@ -38,13 +38,14 @@ Before getting started, ensure you have the following installed:
 ## 💻 Getting Started
 
 ### 1️⃣ Clone the Repository
-
+Open powershell
 ```sh
 git clone https://github.com/shivanishrungare/Hotel-Booking-List-App.git
 cd Hotel-Booking-List-App
 ```
 
 ### 2️⃣ Build and Run the Containers
+Make sure to open/start the docker desktop and in powershell run
 ```sh
 docker compose up --build
 ```

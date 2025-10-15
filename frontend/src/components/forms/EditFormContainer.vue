@@ -129,7 +129,6 @@ const sources = ref([
   { label: "Priceline", value: "Priceline" },
   { label: "Agoda", value: "Agoda" },
   { label: "Accor", value: "Accor" },
-   { label: "Other Trivago Partner", value: "Other Trivago Partner" },
   { label: "Other booking sites", value: "Other booking sites" },
 ]);
 

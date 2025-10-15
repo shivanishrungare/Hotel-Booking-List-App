@@ -3,7 +3,7 @@
   <div class="form-wrapper">
     <ConfirmToast ref="confirmRef" />
     <form class="create-booking-form" @submit.prevent="saveBooking">
-      <p style="color: #FF8B00 ">Create bookings that were not automatically tracked by Trivago or were deleted by
+      <p style="color: #FF8B00 ">Create bookings that were not automatically tracked or were deleted by
         mistake (e.g., phone or in-person reservations).</p>
 
       <div class="form-row">

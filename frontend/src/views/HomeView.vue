@@ -2,8 +2,7 @@
   <div class="hotel-web-app">
     <header>
       <nav class="navbar">
-        <img src="../assets/trivago-logo.svg" alt='logo' class='logo' />
-        <h1>Business Studio</h1>
+        <h1>Business Studio Dashboard</h1>
       </nav>
     </header>
 
